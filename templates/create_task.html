@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+<script
+  src="https://code.jquery.com/jquery-3.1.1.min.js"
+  integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+  crossorigin="anonymous">
+</script>
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<link rel="stylesheet" href="/static/main.css">
+
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div id="call-task-template" data-task-type="call">
+                Sample Call Task
+                <div class="input-group">
+                  <span class="input-group-addon">Phone Number</span>
+                  <input type="text" class="form-control" placeholder="Phone Number" aria-describedby="basic-addon1" id="phone-number">
+                </div>
+                <br>
+                <div class="input-group">
+                  <span class="input-group-addon">Name</span>
+                  <input type="text" class="form-control" placeholder="Name" aria-describedby="basic-addon1" id="name">
+                </div>
+                <br>
+                <div class="input-group">
+                  <span class="input-group-addon">Script</span>
+                    <textarea type="text" class="form-control" placeholder="Script" aria-describedby="basic-addon1" id="script"></textarea>
+                </div>
+                <br>
+                <div class="input-group">
+                      <input type="text" class="form-control" placeholder="Add Response Option..." id="response-option-input">
+                      <span class="input-group-btn">
+                        <button class="btn btn-default" type="button" id="add-new-option">+</button>
+                      </span>
+                </div>
+                <div>
+                    <ul class="list-group" id="entered-response-options">
+                    </ul>
+                </div>
+                <button class="btn btn-success" id="post-btn">Post!</button>
+                <div id="response-data">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    $(document).ready(function() {
+        API_KEY = 'TEST'
+        $("#phone-number").val("123456789");
+        $("#name").val("John Doe");
+        $("#script").val("How are you feeling today?");
+
+        $("#add-new-option").click(function(){
+            $li = $('<li class="list-group-item">').html($("#response-option-input").val())
+            $("#entered-response-options").append($li)
+            $("#response-option-input").val("")
+        })
+
+        $("#post-btn").click(function(){
+            $("#post-btn").prop('disabled', true);//disable button on click to decrease chance of repeated posting
+
+            var task_type = $("#call-task-template").data("task-type");
+            var phone_number = $("#phone-number").val();
+            var name = $("#name").val();
+            var script = $("#script").val();
+            var responses = $.map($("#entered-response-options").children(),function(el){return $(el).text() });
+            var data = JSON.stringify({
+                    task_type: task_type,
+                    phone_number: phone_number,
+                    name: name,
+                    script: script,
+                    responses: responses
+            });
+
+            //Because the responses array gets truncated if you post it directly, we first convert it to a string then
+            //decode the json server side
+
+            var post_action = $.post('/add_task/' + API_KEY, {data: data});
+            post_action.done(function(data){
+                $("#response-data").html("<pre>Posted Task ID: "+ data + "</pre>");
+            });
+            post_action.fail(function(data){
+                $("#post-btn").prop('disabled', false);
+
+            })
+
+        })
+    })
+</script>
+</html>
+
+
