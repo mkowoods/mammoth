@@ -62,16 +62,16 @@
 </body>
 <script>
     $(document).ready(function() {
-        API_KEY = 'TEST'
+        API_KEY = 'TEST';
         $("#phone-number").val("123456789");
         $("#name").val("John Doe");
         $("#script").val("How are you feeling today?");
 
         $("#add-new-option").click(function(){
-            $li = $('<li class="list-group-item">').html($("#response-option-input").val())
-            $("#entered-response-options").append($li)
-            $("#response-option-input").val("")
-        })
+            $li = $('<li class="list-group-item">').html($("#response-option-input").val());
+            $("#entered-response-options").append($li);
+            $("#response-option-input").val("");
+        });
 
         $("#post-btn").click(function(){
             $("#post-btn").prop('disabled', true);//disable button on click to decrease chance of repeated posting
