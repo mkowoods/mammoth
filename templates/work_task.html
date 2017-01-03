@@ -1,26 +1,7 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-    <!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
-<!-- Optional theme -->
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+{% extends "base.html" %}
 
-<script
-  src="https://code.jquery.com/jquery-1.12.4.min.js"
-  integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
-  crossorigin="anonymous">
-</script>
-
-<!-- Latest compiled and minified JavaScript -->
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="/static/main.css">
-
-</head>
-<body>
+{%  block body %}
 <div class="container">
     <div class="row">
         <div class="col-md-6">
@@ -30,11 +11,46 @@
                     <p>Phone Number: {{ data.phone_number }}</p>
                     <p>Name: {{ data.name }}</p>
                     <p>Script: {{ data.script }}</p>
-                    <select name="response-options" class="form-control">
-                        {% for resp in data.responses %}
-                            <option value="{{ resp }}">{{ resp }}</option>
-                        {%  endfor %}
-                    </select>
+                    {% if data.solved %}
+                        <p>Response: {{ data.option_choice }}</p>
+                        <p>{{ data.comment }}</p>
+                        <h2>Already Completed</h2>
+                    {%  else  %}
+                        <select name="response-options" class="form-control">
+                            {% for resp in data.responses %}
+                                <option value="{{ resp }}">{{ resp }}</option>
+                            {%  endfor %}
+                            <option value="did-not-reply">Did Not Reply</option>
+                        </select>
+                         <div class="form-group">
+                          <label for="comment">Comment:</label>
+                          <textarea class="form-control" rows="5" id="comment"></textarea>
+                        </div>
+                        <br>
+
+                        <button class="btn btn-success">Start Timer</button> Need to have a clock here to log time spent on ticket
+                        <br>
+                        <button class="btn btn-primary" id="completed-btn" data-btn-id="{{ data.eid }}">Mark Task as Completed</button>
+                        <div id="feedback"></div>
+                    {%  endif %}
+                {% elif data.task_type == 'file_review' %}
+                    <h3>This is a File Review Task</h3>
+                    <p>Script: {{ data.script }}</p>
+                    {% if data.solved %}
+                        <h2>Already Completed</h2>
+                    {%  else  %}
+                        <a class="btn btn-primary" href="data:application/octet-stream;base64,{{ data.file_data }}" download="{{ data.file_name }}">Download File</a>
+                        <div class="form-group">
+                          <label for="comment">Comment:</label>
+                          <textarea class="form-control" rows="5" id="comment"></textarea>
+                        </div>
+                        <br>
+                        <button class="btn btn-success">Start Timer</button> Need to have a clock here to log time spent on ticket
+                        <br>
+                        <button class="btn btn-primary" id="completed-btn" data-btn-id="{{ data.eid }}">Mark Task as Completed</button>
+                        <div id="feedback"></div>
+                    {%  endif %}
+
                 {% endif %}
             {% else %}
                 <h4>Task Not Found</h4>
@@ -42,5 +58,24 @@
         </div>
     </div>
 </div>
-</body>
-</html>
+<script>
+    $(document).ready(function(){
+        $("#completed-btn").click(function(){
+            var $btn = $(this);
+            console.log($btn)
+            var path = '/mark_completed/'+ $btn.data("btn-id");
+            var data = {"comment": $("#comment").val(),
+                        "option_choice": $("select option:selected").val()
+                        };
+            $.post(path, data, function(){
+                //on success
+                $btn.prop('disabled', true)
+                $("#feedback").html("<h3> Successfully Posted </h3>")
+            })
+                .fail(function () {
+                    $("#feedback").html("<h3> Something went wrong </h3>")
+                })
+        })
+    })
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+
+{% extends "base.html" %}
+
+{%  block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div id="call-task-template" data-task-type="call">
+                Sample File Review Task
+                <div class="input-group">
+                  <span class="input-group-addon">What should the user do with your file?</span>
+                    <textarea type="text" class="form-control" placeholder="Description..." aria-describedby="basic-addon1" id="script"></textarea>
+                </div>
+                <br>
+                <div>
+                    <label class="btn btn-default btn-file">
+                        Upload File <input id="file-upload" type="file" style="display: none;">
+                    </label>
+                    <span id="upload-file-info"></span>
+
+                </div>
+                <div>
+                    <ul class="list-group" id="entered-response-options">
+                    </ul>
+                </div>
+                <button class="btn btn-success" id="post-btn">Post!</button>
+                <div id="response-data">
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function() {
+        API_KEY = 'TEST';
+
+        $("#file-upload").change(function () {
+            console.log();
+            $("#upload-file-info").html( this.files[0].name )
+        });
+
+        $("#post-btn").click(function(){
+            $("#post-btn").prop('disabled', true);//disable button on click to decrease chance of repeated posting
+
+            var script = $("#script").val();
+            var file_data = new FormData()
+            file_data.append('file', $("#file-upload")[0].files[0])
+            file_data.append('task_type', 'file_review');
+            file_data.append('script', script)
+{#            var data ={#}
+{#                    task_type: 'file_review',#}
+{#                    script: script,#}
+{#                    file: $("#file-upload")[0].files[0]#}
+{#                };#}
+            //Because the responses array gets truncated if you post it directly, we first convert it to a string then
+            //decode the json server side
+
+            var post_action = $.ajax({
+                url: '/add_task/'+API_KEY,
+                type: 'POST',
+                data: file_data,
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+            post_action.done(function(data){
+                $("#response-data").html("<pre>Posted Task ID: "+ data + "</pre>");
+            });
+            post_action.fail(function(data){
+                $("#response-data").html("<pre>Posted Task Failed </pre>");
+                $("#post-btn").prop('disabled', false);
+
+            })
+
+        })
+    })
+</script>
+{% endblock %}
+
+
